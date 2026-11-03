@@ -1,184 +1,506 @@
-#include <stdio.h>      // allows use of printf() and scanf()
-#include <stdlib.h>     // allows use of system(), exit(), rand()
-#include <time.h>       // allows use of time() for random seed
+//header files
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
 #define max 20
 
-char name[max][100];    // Array to store names of students (max 100 chars each)
-char pass[max][50];     // Array to store password of user (max 50 chars each)
-int scores[max] = {0};
-int last= -1;
-int users = 0;
+// Global Arrays
+int as[max] = {0}, ss[max] = {0}, ms[max] = {0}, ds[max] = {0}; //scores ng mga quizes nila
+char name[max][100]; //for the users to input their names with the limit of 100 characters
+char pass[max][50]; //for the users to input their passwords with the limit of 50 characters
+int users = 0; //user count
 
-int addition(int items);        // function prototype for addition quiz
-int subtraction(int items);     // function prototype for subtraction quiz
-int multiplication(int items);  // function prototype for multiplication quiz
-int division(int items);        // function prototype for division quiz
-int menu();                     // function prototype for menu
-int lg(); // function prototype for Log In
-int Su(); // function prototype for Log In
-void leadB();
-void upload();
-void download();
-int locpos(int qst, int qnd, int qrd);
+// User Defined Functions
 int isfull(); //checks if the storage is full
-int isempty(); //chekcs if the storage is empty
-int locate(char nm[]); //locates record with by the name
-void delacc(char nm[]); //deletes existing record
+int isempty();//chekcs if the storage is empty
+int locate(char nm[]);//locates record with by the name
+int li(); //Checks if the user has an acc then they can login
+int su();//where the user registers and it checks if the name is duplicated
+void del(char nm[]); //deletes existing recod
+int addition(int items); //addition quiz
+int subtraction(int items);//subtraction quiz
+int multiplication(int items);//multiplication quiz
+int division(int items);//division quiz
+int menu();//menu options
+int mlb(); //menu for leaderbords
+void upload();//saves the data to file
+void download(); //loads date from file
+void olb(); //overall leaderboard
+void lb(int ch); //individual leaderboard(add,sub,mul, and division)
+//Main
+int main() {
+    srand(time(NULL));//randomizer
+    int no, u = -1;
+    int n = 5, score = 0;
+    char nm[100]; //name of user
+    download(); // load saved data
 
-int main()
-{
-    srand(time(NULL));          // seeds random generator so numbers change every run
-    int n = 5;                  // number of quiz questions per operation
-    char nm[100];               // array to store user's name (max 99 characters)
+    while(1) {
+        system("cls");
+        printf("<3--------->> Login/Register <<---------<3\n");
+        printf("Number of players: %d\n", users);
+        printf(">>-------------------------------------->>\n");
+        printf("1. Log In\n2. Register\n3. Delete Account\n4. View Leaderboards\n5. Exit\n");
+        printf(">>-------------------<3----------------->>\n");
+        printf("Enter number: ");
 
-    while(1)                    // infinite loop (program runs until exit)
-    {
-        system("cls");          // clears screen (Windows only)
-        printf(">>=========LOGIN/REGISTER========<<\n");
-        printf("\n1.Log In\n2.Register\n");
-
-        switch(menu())                     // calls menu() and switches based on returned choice
+        if (scanf("%d", &no) != 1) {
+            while(getchar() != '\n');
+            continue;
+        }
+        switch(no) //log in of user
         {
             case 1:
-                printf("\n===============================\n");
-                printf("\n%s, you got %d out of %d!!!\n", nm, addition(n), n); // runs addition quiz and prints score
-                printf("\n===============================\n");
-                system("pause");            // pauses program (Windows only)
-                break;                      // exits switch
+                u = li();
+                if (u != -1) {
+                    while(1) {
+                        int gm = menu(); //Operations menu (the game)
+                        if(gm< 1 || gm>5)
+                        {
+                            continue;
+                        }
+                        if (gm == 5) //log out
+                        {
+                            break;
+                        }
+                        score = 0;
+                        switch(gm)
+                        {
+                            case 1: score = addition(n); //game new score
+                            if(score > as[u]) as[u] = score; //comparing if the new score is higher than the recorded/stored score and it applies to the other operations aswell
+                            break;
+                            case 2: score = subtraction(n);
+                            if(score > ss[u]) ss[u] = score;
+                            break;
+                            case 3: score = multiplication(n);
+                            if(score > ms[u]) ms[u] = score;
+                            break;
+                            case 4: score = division(n);
+                            if(score > ds[u]) ds[u] = score;
+                            break;
+                        }
 
-            case 2:
-                printf("\n===============================\n");
-                printf("\n%s, you got %d out of %d!!!\n", nm, subtraction(n), n); // runs subtraction quiz
-                printf("\n===============================\n");
-                system("pause");
+                        upload(); //data aved
+                        printf("\n>>-------------------------------------->>\n");
+                        printf("\nHi, %s! You scored /('v')/ %d out of %d!", name[u], score, n);
+                        printf("\n>>-------------------------------------->>\n");
+                        system("pause");
+                        olb(); //After you see your score the overall leaderboard will appear
+                    }
+                }
                 break;
+            case 2: su(); //if user doesnt have an accout this is the register option
+                    upload(); //data will be saved
+                    break;
+            case 3: printf("\n>>---------------<('^')>-------------<<\n"); //if user wants to delete their acc
+                    printf("Enter username to delete: ");
+                    getchar();
+                    scanf("%[^\n]", nm);
+                    del(nm);
+                    upload();
+                    break;
+            case 4: while(1)
+            {
+                int lbc = mlb(); //leaderboard menu addressed as mlb instead of lbm para maayos pakinggan
+                if (lbc == 0) continue;
+                if (lbc == 6) break; //back to main meun
+                if (lbc == 5) {
+                olb(); //overall leaderboard
+                }
+                else
+                {
+                lb(lbc); //individual operation leaderboard
+                }
+            }
+            break;
+            case 5: printf("\n>>---------------<(;^;)>-------------<<\n");
+                    printf("\nGoodbye! See you next time %s", name[u]); //goodbye message
+                    printf("\n>>-----------------</3---------------<<\n");
+                    exit(0);
+            default:printf("1-5 lang poh!!\n"); //if user inputs outside of the option
+                 system("pause");
+        }
+    }
+    return 0;
+}
+int mlb() //leaderboard menu
+{
+    int ch;
 
-            case 3:
-                printf("\n===============================\n");
-                printf("\n%s, you got %d out of %d!!!\n", nm, multiplication(n), n); // runs multiplication quiz
-                printf("\n===============================\n");
+    system("cls");
+    printf("<3--------->> Leaderboard Menu <<---------<3\n");
+    printf("1. Addition Rankings\n2. Subtraction Rankings\n3. Multiplication Rankings\n4. Division Rankings\n5. Overall Rankings (Total)\n6. Back to Main Menu\n");
+    printf(">>-------------------<3------------------>>\n");
+    printf("Present the ranking of: ");
+     if (scanf("%d", &ch) != 1 || ch < 1 || ch > 6)
+    {
+    while(getchar() != '\n');
+    printf("Please only choose from 1-6\n");
+    system("pause");
+    return 0;
+ }
+ return ch;
+}
+int isfull()
+{
+    return (users >= max); //if puno na yung slot ng max
+}
+int isempty()
+{
+    return (users <= 0); //pag walang users
+}
+int locate(char nm[]) {
+    for(int i = 0; i < users; i++) {
+        if(strcmp(name[i], nm) == 0) return i;
+    }
+    return -1;
+}
+
+int li() //Log In
+{
+    char n[100], p[50];
+
+    printf("\n<3--------->> User LogIn <<---------<3\n");
+    printf("Enter Username: ");
+    getchar();
+    scanf(" %[^\n]", n);
+    printf("Enter Password: ");
+    scanf("%s", p);
+
+    int l = locate(n);
+    if (l== -1)
+    {
+        printf("\n>>---------------<('^')>-------------<<\n");
+        printf("%s is not yet registered...\nPlease Register First!\n", n); //no name stored in the file
+        printf(">>-------------------</3---------------<<\n");
+        system("pause");
+        return -1;
+    }
+    else if (strcmp(p, pass[l]) == 0)
+    {
+        printf("\n>>--------------/('v')/------------->>\n");
+        printf("Login Successful! Welcome back, %s!!!\n",n); //user has an acc
+        printf("<<----------------<3----------------<<\n");
+        system("pause");
+        return l;
+    }
+    else
+    {
+        printf("\n>>---------------<('O')>-------------<<\n");
+        printf("[!] ERROR: Incorrect Password for user '%s'.\n", n); //correct name but wrong pass
+        printf("Please try again.\n");
+        printf(">>-----------------</3---------------<<\n");
+        system("pause");
+        return -1;
+    }
+}
+int su() //sign up
+{
+    char n[100], p[50];
+    if (isfull())
+        {
+        printf("No more slots!\n");
+        system("pause");
+        return -1;
+        }
+    printf("Welcome!!!");
+    printf("\n<3--------->> User Register <<---------<3\n");
+    printf("Enter Username: ");
+    getchar();
+    scanf(" %[^\n]", n);
+    if (locate(n) > -1)
+        {
+        printf("\n>>----------------<('^')>--------------<<\n");
+        printf("'%s' is Already Used!\n Please Pick Another Name...\n", n); //name duplicated
+        printf(">>------------------</3----------------<<\n");
+        system("pause");
+        return -1;
+        }
+    printf("Enter Password: "); scanf("%s", p);
+
+    strcpy(name[users], n);
+    strcpy(pass[users], p);
+    as[users] = ss[users] = ms[users] = ds[users] = 0;
+    users++;
+    printf("\n\n>>---------------/('v')/-------------->>\n");
+    printf("You are now registered, %s!\nPlease proceed to log in.",n); //successfully registered
+    printf("\n<<-----------------<3----------------<<\n");
+    system("pause");
+    return users - 1;
+}
+
+void del(char nm[]) { //delete account
+    int i, p;
+    char psc[50]; // To store the password input
+
+    if (isempty()) {
+        printf("\n>>---------------<('-')>-------------<<\n");
+        printf("Nothing to delete\n");
+        printf(">>------------------</3----------------<<\n");
+        system("pause");
+    } else {
+        p = locate(nm);
+        if(p == -1) {
+            printf("\n>>---------------<(;^;)>-------------<<\n");
+            printf("User not found....\n");
+            printf(">>------------------</3----------------<<\n");
+            system("pause");
+        }
+        else
+        {
+            printf("Enter password to confirm deletion: ");
+            scanf("%s", psc);
+
+            if (strcmp(psc, pass[p]) == 0) {
+                for(i = p; i < users - 1; i++) {
+                    strcpy(name[i], name[i+1]);
+                    strcpy(pass[i], pass[i+1]);
+                    as[i] = as[i+1];
+                    ss[i] = ss[i+1];
+                    ms[i] = ms[i+1];
+                    ds[i] = ds[i+1];
+                }
+                users--;
+                printf("\n>>----------------/(;v;)/--------------<<\n");
+                printf("Account '%s' successfully removed.\n", nm); //acc successfuly deleted
+                printf(">>------------------</3----------------<<\n");
                 system("pause");
-                break;
-
-            case 4:
-                printf("\n===============================\n");
-                printf("\n%s, you got %d out of %d!!!\n", nm, division(n), n); // runs division quiz
-                printf("\n===============================\n");
+            }
+            else
+            {
+                printf("\n>>---------------<('^')>-------------<<\n");
+                printf("[!] ERROR: Wrong password. Deletion cancelled.\n"); //wrong input of password
+                printf(">>-----------------</3---------------<<\n");
                 system("pause");
-                break;
+            }
+        }
+    }
+}
 
-            case 5:
-                printf("Babyeee!:>");         // prints goodbye message
-                exit(0);                   // immediately terminates program
+void lb(int ch) //leaderboard
+{
+    int tempS[max], rank[max], i, j, t;
+    char title[20];
 
-            default:
-                printf("1-5 lang po, %s", nm); // prints error if invalid menu choice
-                system("pause");
-                break;
+    for(i = 0; i < users; i++) {
+        rank[i] = i;
+        if(ch == 1)
+                {
+                tempS[i] = as[i];
+                strcpy(title, "ADDITION");
+                }
+        else if(ch == 2)
+                {
+                tempS[i] = ss[i];
+                strcpy(title, "SUBTRACTION");
+                }
+        else if(ch == 3)
+                {
+                tempS[i] = ms[i];
+                strcpy(title, "MULTIPLICATION");
+                }
+        else if(ch == 4)
+        {
+                tempS[i] = ds[i];
+                strcpy(title, "DIVISION");
+        }
+        else
+        {
+            printf("\n1-6 Lang po!!");
+            return;
         }
     }
 
-    return 0;   // never reached because while(1) is infinite
+    for (i = 0; i < users - 1; i++) { //sorting for leaderboard
+        for (j = 0; j < users - i - 1; j++)
+            {
+            if (tempS[j] < tempS[j + 1])
+            {
+                t = tempS[j];
+                tempS[j] = tempS[j+1];
+                tempS[j+1] = t;
+                t = rank[j]; rank[j] = rank[j+1];
+                rank[j+1] = t;
+            }
+        }
+    }
+    system("cls");
+    printf("<3---------->> Top 10 %s Ranking <<--------<3\n", title);
+    printf("%12s %-18s %-5s\n", "RANK","PLAYER", "HIGH SCORE");
+    printf(">>-----------------------------------------------<<\n");
+    for(i = 0; i < users && i<10; i++) {
+        printf("        [%d]  %-22s %-5d\n", i + 1, name[rank[i]], tempS[i]);
+        printf(">>-------------------------------------------------<<\n");
+    }
+    system("pause");
 }
+void olb() { //Overall leaderboard
+    int total[max], rank[max], i, j, t;
+    for(i = 0; i < users; i++) {
+        total[i] = as[i] + ss[i] + ms[i] + ds[i];
+        rank[i] = i;
+    }
+    for (i = 0; i < users - 1; i++) //sorting overall ranking
+        {
+        for (j = 0; j < users - i - 1; j++)
+            {
+            if (total[j] < total[j + 1])
+            {
+                t = total[j]; total[j] = total[j+1];
+                total[j+1] = t;
+                t = rank[j]; rank[j] = rank[j+1];
+                rank[j+1] = t;
+            }
+        }
+    }
+    system("cls");
+    printf("<3---------------->> Overall Top 10 Ranking <<-----------------<3\n");
+    printf("%-2s %-14s %-5s %-5s %-5s %-5s %-7s","RANK","PLAYER","ADD","SUB", "MUL","DIV","TOTAL");
+    printf("\n<3-------------------------------------------------------------<3\n");
+    for(i = 0; i < users && i<10; i++) {
+        int idx = rank[i];
+        printf("[%d]  %-15s %-5d %-5d %-5d %-5d %-9d\n", i + 1, name[idx], as[idx], ss[idx], ms[idx], ds[idx], total[i]);
+        printf("<3-------------------------------------------------------------<3\n");
+    }
+     if(users > 10) {
+        printf("\n>>--------------------- Other Players ----------------------<<\n");
+        for(i = 10; i < users; i++) {
+            int idx = rank[i];
+            printf("[%d]  %-15s %-5d %-5d %-5d %-5d %-9d\n", i + 1, name[idx], as[idx], ss[idx], ms[idx], ds[idx], total[i]);
+        }
+    }
+    printf("<3------------------------------------------------------<3\n");
+    system("pause");
+}
+int addition(int items) //Addition Quiz
+{
+int a,b,ans,i,ctr=0;
+for (i=1;i<=items;i++){
+    a = rand() % 20 + 1;
+    b = rand() % 20 + 1;
 
-int addition(int items){
-int a,b,ans,i,ctr=0;        // a & b = numbers, ans = user answer, i = loop counter, ctr = score
-for (i=1;i<=items;i++){     // loop from 1 up to number of questions
-    a = rand() % 20 + 1;    // generates random number between 1-20
-    b = rand() % 20 + 1;    // generates random number between 1-20
-    printf("\n%d.) What is %d + %d? ",i,a,b); // displays addition question
-    scanf("%d",&ans);       // reads user's answer
-    if (ans!=a+b){          // checks if answer is incorrect
-        printf("Wrong! The correct answer is %d.\n",a+b); // prints correct answer
+    printf("\n<3------->> No. %d <<-------<3\n", i);
+    printf("\nWhat is %d + %d? ",a,b);
+    scanf("%d",&ans);
+    if (ans!=a+b){
+        printf("Wrong! The correct answer is %d.\n",a+b);
     }
     else {
-        printf("Correct, Apakagaling!\n"); // prints correct message
-        ctr++;                // increases score counter
+        printf("Correct, Apakagaling!\n");
+        ctr++;
     }
 }
-return ctr;                  // returns total correct answers
+return ctr;
 }
-
-int subtraction(int items){
-int a,b,ans,i,ctr=0;        // variable declarations
+int subtraction(int items)
+{
+int a,b,ans,i,ctr=0;
 for (i=1;i<=items;i++){
-    a = rand() % 20 + 1;    // random number
-    b = rand() % 20 + 1;    // random number
-    if (a < b) {            // ensures result is not negative
-        int temp = a;       // temporary variable
-        a = b;              // swap values
+    a = rand() % 20 + 1;
+    b = rand() % 20 + 1;
+    if (a < b) { //no negative results
+        int temp = a;
+        a = b;
         b = temp;
     }
-    printf("\n%d.) What is %d - %d? ",i,a,b); // displays subtraction question
-    scanf("%d",&ans);       // reads answer
-    if (ans!=a-b){          // checks if answer is incorrect
+    printf("\n<3------->> No. %d <<-------<3\n", i);
+    printf("What is %d - %d? ",a,b);
+    scanf("%d",&ans);
+    if (ans!=a-b){
         printf("Wrong! The correct answer is %d.\n",a-b);
     }
     else {
         printf("Correct, Apakagaing!\n");
-        ctr++;              // increases score
+        ctr++;
     }
 }
-return ctr;                 // returns total score
+return ctr;
 }
-
-int multiplication(int items){
-int a,b,ans,i,ctr=0;        // variable declarations
+int multiplication(int items)
+{
+int a,b,ans,i,ctr=0;
 for (i=1;i<=items;i++){
-    a = rand() % 20 + 1;    // random number
-    b = rand() % 20 + 1;    // random number
-    printf("\n%d.) What is %d x %d? ",i,a,b); // displays multiplication question
-    scanf("%d",&ans);       // reads answer
-    if (ans!=a*b){          // checks if incorrect
+    a = rand() % 20 + 1;
+    b = rand() % 20 + 1;
+    printf("\n<3------->> No. %d <<-------<3\n", i);
+    printf("\nWhat is %d x %d? ",a,b);
+    scanf("%d",&ans);
+    if (ans!=a*b){
         printf("Wrong! The correct answer is %d.\n",a*b);
     }
     else {
         printf("Correct, Apakagaing!\n");
-        ctr++;              // increases score
+        ctr++;
     }
 }
-return ctr;                 // returns score
+return ctr;
 }
 
-int division(int items){
-    int a,b,ans,i,ctr=0;    // variable declarations
-
+int division(int items)
+{
+    int a,b,ans,i,ctr=0;
     for (i=1;i<=items;i++){
-
-        a = rand() % 20 + 1;   // random number
-        b = rand() % 20 + 1;   // random number
-
-        if (a < b) {           // ensures dividend is larger
+        a = rand() % 20 + 1;
+        b = rand() % 20 + 1;
+        if (a < b) { //no decimals
             int temp = a;
             a = b;
             b = temp;
         }
+        printf("\n<3------->> No. %d <<-------<3\n", i);
+        printf("\nWhat is %d / %d? ",a,b);
+        scanf("%d",&ans);
 
-        printf("\n%d.) What is %d / %d? ",i,a,b); // displays division question
-        scanf("%d",&ans);       // reads user answer
-
-        if (ans!=a/b){          // checks answer (integer division)
+        if (ans!=a/b){
             printf("Wrong! The correct answer is %d.\n",a/b);
         }
-        else {
+        else
+        {
             printf("Correct, Apakagaling!\n");
-            ctr++;              // increases score
+            ctr++;
         }
     }
-    return ctr;                 // returns total correct answers
+    return ctr;
 }
-
-int menu()
+int menu() //menu of the game
 {
-    int opts;                       // variable to store menu choice
+    int opts;
+    system("cls");
+    printf("\n<3------->> Menu <<-------<3\n1. Addition\n2. Subtraction\n3. Multiplication\n4. Division\n5. Logout\n>>----------<3------------>>\n");
+    printf("The number of your choice: ");
+    if (scanf("%d", &opts) != 1 || opts < 1 || opts > 5)
+    {
+    while(getchar() != '\n');
+    printf("Please only choose from 1-5\n");
+    system("pause");
+    return 0;
+ }
+return opts;
+}
+void upload() //save the data
+{
+    FILE *fp = fopen("data.txt", "w");
+    if (fp == NULL){
+        printf("Error 404.\n");
+        system("pause");
+    }
+    for (int i = 0; i < users; i++) {
+        fprintf(fp, "%s,%s,%d,%d,%d,%d\n", name[i], pass[i], as[i], ss[i], ms[i], ds[i]);
+    }
+    fclose(fp);
+}
+void download() //loads data from filr
+{
+    FILE *fp = fopen("data.txt", "r");
+    if (fp == NULL) return;
 
-    system("cls");                  // clears screen
-    printf("CARANAY-QUIZ\n");       // prints title (semicolon fixed)
-    printf("===========MENU===========");
-    printf("\n1. Addition\n2. Subtraction\n3. Multiplication\n4. Division\n5. Exit\n");
-    printf("==========================");
-    printf("\nPick the number of the operation: ");
-    scanf("%d", &opts);             // reads user input for menu choice
-
-    return opts;                    // returns selected option to main()
+    users = 0;
+    while(fscanf(fp, " %[^,],%[^,],%d,%d,%d,%d",name[users], pass[users], &as[users], &ss[users], &ms[users], &ds[users]) == 6)
+    {
+        users++;
+        if(users >= max) break;
+    }
+    fclose(fp);
 }
