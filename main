@@ -1,0 +1,184 @@
+#include <stdio.h>      // allows use of printf() and scanf()
+#include <stdlib.h>     // allows use of system(), exit(), rand()
+#include <time.h>       // allows use of time() for random seed
+#define max 20
+
+char name[max][100];    // Array to store names of students (max 100 chars each)
+char pass[max][50];     // Array to store password of user (max 50 chars each)
+int scores[max] = {0};
+int last= -1;
+int users = 0;
+
+int addition(int items);        // function prototype for addition quiz
+int subtraction(int items);     // function prototype for subtraction quiz
+int multiplication(int items);  // function prototype for multiplication quiz
+int division(int items);        // function prototype for division quiz
+int menu();                     // function prototype for menu
+int lg(); // function prototype for Log In
+int Su(); // function prototype for Log In
+void leadB();
+void upload();
+void download();
+int locpos(int qst, int qnd, int qrd);
+int isfull(); //checks if the storage is full
+int isempty(); //chekcs if the storage is empty
+int locate(char nm[]); //locates record with by the name
+void delacc(char nm[]); //deletes existing record
+
+int main()
+{
+    srand(time(NULL));          // seeds random generator so numbers change every run
+    int n = 5;                  // number of quiz questions per operation
+    char nm[100];               // array to store user's name (max 99 characters)
+
+    while(1)                    // infinite loop (program runs until exit)
+    {
+        system("cls");          // clears screen (Windows only)
+        printf(">>=========LOGIN/REGISTER========<<\n");
+        printf("\n1.Log In\n2.Register\n");
+
+        switch(menu())                     // calls menu() and switches based on returned choice
+        {
+            case 1:
+                printf("\n===============================\n");
+                printf("\n%s, you got %d out of %d!!!\n", nm, addition(n), n); // runs addition quiz and prints score
+                printf("\n===============================\n");
+                system("pause");            // pauses program (Windows only)
+                break;                      // exits switch
+
+            case 2:
+                printf("\n===============================\n");
+                printf("\n%s, you got %d out of %d!!!\n", nm, subtraction(n), n); // runs subtraction quiz
+                printf("\n===============================\n");
+                system("pause");
+                break;
+
+            case 3:
+                printf("\n===============================\n");
+                printf("\n%s, you got %d out of %d!!!\n", nm, multiplication(n), n); // runs multiplication quiz
+                printf("\n===============================\n");
+                system("pause");
+                break;
+
+            case 4:
+                printf("\n===============================\n");
+                printf("\n%s, you got %d out of %d!!!\n", nm, division(n), n); // runs division quiz
+                printf("\n===============================\n");
+                system("pause");
+                break;
+
+            case 5:
+                printf("Babyeee!:>");         // prints goodbye message
+                exit(0);                   // immediately terminates program
+
+            default:
+                printf("1-5 lang po, %s", nm); // prints error if invalid menu choice
+                system("pause");
+                break;
+        }
+    }
+
+    return 0;   // never reached because while(1) is infinite
+}
+
+int addition(int items){
+int a,b,ans,i,ctr=0;        // a & b = numbers, ans = user answer, i = loop counter, ctr = score
+for (i=1;i<=items;i++){     // loop from 1 up to number of questions
+    a = rand() % 20 + 1;    // generates random number between 1-20
+    b = rand() % 20 + 1;    // generates random number between 1-20
+    printf("\n%d.) What is %d + %d? ",i,a,b); // displays addition question
+    scanf("%d",&ans);       // reads user's answer
+    if (ans!=a+b){          // checks if answer is incorrect
+        printf("Wrong! The correct answer is %d.\n",a+b); // prints correct answer
+    }
+    else {
+        printf("Correct, Apakagaling!\n"); // prints correct message
+        ctr++;                // increases score counter
+    }
+}
+return ctr;                  // returns total correct answers
+}
+
+int subtraction(int items){
+int a,b,ans,i,ctr=0;        // variable declarations
+for (i=1;i<=items;i++){
+    a = rand() % 20 + 1;    // random number
+    b = rand() % 20 + 1;    // random number
+    if (a < b) {            // ensures result is not negative
+        int temp = a;       // temporary variable
+        a = b;              // swap values
+        b = temp;
+    }
+    printf("\n%d.) What is %d - %d? ",i,a,b); // displays subtraction question
+    scanf("%d",&ans);       // reads answer
+    if (ans!=a-b){          // checks if answer is incorrect
+        printf("Wrong! The correct answer is %d.\n",a-b);
+    }
+    else {
+        printf("Correct, Apakagaing!\n");
+        ctr++;              // increases score
+    }
+}
+return ctr;                 // returns total score
+}
+
+int multiplication(int items){
+int a,b,ans,i,ctr=0;        // variable declarations
+for (i=1;i<=items;i++){
+    a = rand() % 20 + 1;    // random number
+    b = rand() % 20 + 1;    // random number
+    printf("\n%d.) What is %d x %d? ",i,a,b); // displays multiplication question
+    scanf("%d",&ans);       // reads answer
+    if (ans!=a*b){          // checks if incorrect
+        printf("Wrong! The correct answer is %d.\n",a*b);
+    }
+    else {
+        printf("Correct, Apakagaing!\n");
+        ctr++;              // increases score
+    }
+}
+return ctr;                 // returns score
+}
+
+int division(int items){
+    int a,b,ans,i,ctr=0;    // variable declarations
+
+    for (i=1;i<=items;i++){
+
+        a = rand() % 20 + 1;   // random number
+        b = rand() % 20 + 1;   // random number
+
+        if (a < b) {           // ensures dividend is larger
+            int temp = a;
+            a = b;
+            b = temp;
+        }
+
+        printf("\n%d.) What is %d / %d? ",i,a,b); // displays division question
+        scanf("%d",&ans);       // reads user answer
+
+        if (ans!=a/b){          // checks answer (integer division)
+            printf("Wrong! The correct answer is %d.\n",a/b);
+        }
+        else {
+            printf("Correct, Apakagaling!\n");
+            ctr++;              // increases score
+        }
+    }
+    return ctr;                 // returns total correct answers
+}
+
+int menu()
+{
+    int opts;                       // variable to store menu choice
+
+    system("cls");                  // clears screen
+    printf("CARANAY-QUIZ\n");       // prints title (semicolon fixed)
+    printf("===========MENU===========");
+    printf("\n1. Addition\n2. Subtraction\n3. Multiplication\n4. Division\n5. Exit\n");
+    printf("==========================");
+    printf("\nPick the number of the operation: ");
+    scanf("%d", &opts);             // reads user input for menu choice
+
+    return opts;                    // returns selected option to main()
+}
